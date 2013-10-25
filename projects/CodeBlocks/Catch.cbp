@@ -23,6 +23,7 @@
 		</Compiler>
 		<Unit filename="../../.gitattributes" />
 		<Unit filename="../../.gitignore" />
+		<Unit filename="../../.travis.yml" />
 		<Unit filename="../../LICENSE_1_0.txt" />
 		<Unit filename="../../README.md" />
 		<Unit filename="../../catch-logo-small.png" />
@@ -112,6 +113,7 @@
 		<Unit filename="../../scripts/generateSingleHeader.py" />
 		<Unit filename="../../scripts/scriptCommon.py" />
 		<Unit filename="../../single_include/catch.hpp" />
+		<Unit filename="../CMake/CMakeLists.txt" />
 		<Unit filename="../SelfTest/ApproxTests.cpp" />
 		<Unit filename="../SelfTest/BDDTests.cpp" />
 		<Unit filename="../SelfTest/Baselines/approvedResults.txt" />
