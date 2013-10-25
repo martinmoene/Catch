@@ -1,6 +1,6 @@
 /*
  *  CATCH-VC6 v1.0 build 11 (master branch)
- *  Generated: 2013-10-18 00:04:24.014000
+ *  Generated: 2013-10-25 17:20:50.107000
  *  ----------------------------------------------------------
  *  This file has been merged from multiple headers. Please don't edit it directly
  *  Copyright (c) 2012 Two Blue Cubes Ltd. All rights reserved.
@@ -6246,7 +6246,7 @@ namespace Catch {
 
     class Context : public IMutableContext {
 
-        Context() : m_config( NULL ) {}
+        Context() : m_config( NULL ), m_runner( NULL ), m_resultCapture( NULL ) {}
         Context( Context const& );
         void operator=( Context const& );
 
@@ -6306,9 +6306,9 @@ namespace Catch {
         }
 
     private:
+        Ptr<IConfig const> m_config;
         IRunner* m_runner;
         IResultCapture* m_resultCapture;
-        Ptr<IConfig const> m_config;
         std::map<std::string, IGeneratorsForTest*> m_generatorsByTestName;
     };
 
