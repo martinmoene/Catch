@@ -2,7 +2,7 @@
 
 *CATCH-VC6 v1.0 build 11 (master branch)*
 
-Build status (on Travis CI) [![Build Status](https://travis-ci.org/philsquared/Catch.png)](https://travis-ci.org/philsquared/Catch)
+Build status (on Travis CI) [![Build Status](https://travis-ci.org/martinmoene/Catch.png)](https://travis-ci.org/martinmoene/Catch)
 
 # New release with significant changes
 
