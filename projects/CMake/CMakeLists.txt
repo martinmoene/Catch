@@ -12,6 +12,7 @@ set(SCRIPTS_DIR   ${CATCH_DIR}/scripts)
 set(
     SOURCES
 	${SELF_TEST_DIR}/ApproxTests.cpp
+	${SELF_TEST_DIR}/BasicTests.cpp
 	${SELF_TEST_DIR}/BDDTests.cpp
 	${SELF_TEST_DIR}/catch_self_test.cpp
 	${SELF_TEST_DIR}/ClassTests.cpp
@@ -21,6 +22,7 @@ set(
 	${SELF_TEST_DIR}/GeneratorTests.cpp
 	${SELF_TEST_DIR}/MessageTests.cpp
 	${SELF_TEST_DIR}/MiscTests.cpp
+	${SELF_TEST_DIR}/PointerTests.cpp
 	${SELF_TEST_DIR}/SectionTrackerTests.cpp
 	${SELF_TEST_DIR}/TestMain.cpp
 	${SELF_TEST_DIR}/TrickyTests.cpp
