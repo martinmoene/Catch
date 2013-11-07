@@ -1,16 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(Catch C CXX)
-message("configure: Catch/SelfTest")
+project(Catch)
 
 # define some folders
-set(CATCH_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+get_filename_component(CATCH_DIR "${CMAKE_CURRENT_SOURCE_DIR}" PATH)
+get_filename_component(CATCH_DIR "${CATCH_DIR}" PATH)
 set(SELF_TEST_DIR ${CATCH_DIR}/projects/SelfTest)
-set(SCRIPTS_DIR   ${CATCH_DIR}/scripts)
 
 # define the sources of the self test
-set(
-    SOURCES
+set(SOURCES
 	${SELF_TEST_DIR}/ApproxTests.cpp
 	${SELF_TEST_DIR}/BasicTests.cpp
 	${SELF_TEST_DIR}/BDDTests.cpp
@@ -33,7 +31,12 @@ set(
 include_directories(${CATCH_DIR}/include)
 add_executable(SelfTest ${SOURCES})
 
-# configure unit tests via ctest
+# configure unit tests via CTest
 enable_testing()
-add_test(NAME SelfTest_run COMMAND SelfTest)
-#add_test(NAME SelfTest_run COMMAND python ${SCRIPTS_DIR}/approvalTests.py "${CMAKE_CURRENT_BINARY_DIR}/SelfTest")
+add_test(NAME RunTests COMMAND SelfTest)
+
+add_test(NAME ListTests COMMAND SelfTest --list-tests)
+set_tests_properties(ListTests PROPERTIES PASS_REGULAR_EXPRESSION "[0-9]+ test cases")
+
+add_test(NAME ListTags COMMAND SelfTest --list-tags)
+set_tests_properties(ListTags PROPERTIES PASS_REGULAR_EXPRESSION "[0-9]+ tags")
