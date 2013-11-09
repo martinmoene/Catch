@@ -1,6 +1,6 @@
 /*
- *  CATCH-VC6 v1.0 build 11 (master branch)
- *  Generated: 2013-10-25 17:20:50.107000
+ *  CATCH-VC6 v1.0 build 12 (master branch)
+ *  Generated: 2013-11-09 09:16:19.765000
  *  ----------------------------------------------------------
  *  This file has been merged from multiple headers. Please don't edit it directly
  *  Copyright (c) 2012 Two Blue Cubes Ltd. All rights reserved.
@@ -616,6 +616,7 @@ namespace Catch {
 #include <sstream>
 #include <iomanip>
 #include <limits>
+#include <vector>
 
 #ifdef __OBJC__
 // #included from: catch_objc_arc.hpp
@@ -5008,12 +5009,13 @@ namespace Catch {
                         std::cout << nameCol;
                     }
                     if( i < tagsWrapper.size() && !tagsWrapper[i].empty() ) {
+                        size_t padLen( maxNameLen > nameCol.size() ? maxNameLen - nameCol.size() : 0 );
                         if( i == 0 ) {
                             Colour colourGuard( Colour::SecondaryText );
-                            std::cout << "  " << std::string( maxNameLen - nameCol.size(), '.' ) << "  ";
+                            std::cout << "  " << std::string( padLen, '.' ) << "  ";
                         }
                         else {
-                            std::cout << std::string( maxNameLen - nameCol.size(), ' ' ) << "    ";
+                            std::cout << std::string( padLen, ' ' ) << "    ";
                         }
                         std::cout << tagsWrapper[i];
                     }
@@ -6843,7 +6845,7 @@ namespace Catch {
 namespace Catch {
 
     // These numbers are maintained by a script
-    Version libraryVersion( 1, 0, 11, "master" );
+    Version libraryVersion( 1, 0, 12, "master" );
 }
 
 // #included from: catch_text.hpp
