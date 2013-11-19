@@ -5,4 +5,4 @@
 :: Compile Catch selftests
 ::
 
-g++ -m32 -Wall -I../../../include -o TestCatch  ../../SelfTest/catch_self_test.cpp ../../SelfTest/TestMain.cpp ../../SelfTest/ApproxTests.cpp ../../SelfTest/BasicTests.cpp ../../SelfTest/BDDTests.cpp ../../SelfTest/ClassTests.cpp ../../SelfTest/CmdLineTests.cpp ../../SelfTest/ConditionTests.cpp ../../SelfTest/ExceptionTests.cpp ../../SelfTest/GeneratorTests.cpp ../../SelfTest/MessageTests.cpp ../../SelfTest/MiscTests.cpp ../../SelfTest/PointerTests.cpp ../../SelfTest/SectionTrackerTests.cpp ../../SelfTest/TrickyTests.cpp ../../SelfTest/VariadicMacrosTests.cpp  &&  TestCatch
+g++ -m32 -Wall -I../../../include -o TestCatch  ../../SelfTest/TestMain.cpp ../../SelfTest/ApproxTests.cpp ../../SelfTest/BasicTests.cpp ../../SelfTest/BDDTests.cpp ../../SelfTest/ClassTests.cpp ../../SelfTest/CmdLineTests.cpp ../../SelfTest/ConditionTests.cpp ../../SelfTest/ExceptionTests.cpp ../../SelfTest/GeneratorTests.cpp ../../SelfTest/MessageTests.cpp ../../SelfTest/MiscTests.cpp ../../SelfTest/PointerTests.cpp ../../SelfTest/SectionTrackerTests.cpp ../../SelfTest/TrickyTests.cpp ../../SelfTest/VariadicMacrosTests.cpp  &&  TestCatch

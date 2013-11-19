@@ -12,7 +12,6 @@ set(SOURCES
 	${SELF_TEST_DIR}/ApproxTests.cpp
 	${SELF_TEST_DIR}/BasicTests.cpp
 	${SELF_TEST_DIR}/BDDTests.cpp
-	${SELF_TEST_DIR}/catch_self_test.cpp
 	${SELF_TEST_DIR}/ClassTests.cpp
 	${SELF_TEST_DIR}/CmdLineTests.cpp
 	${SELF_TEST_DIR}/ConditionTests.cpp

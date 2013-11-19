@@ -11,7 +11,6 @@
  */
 
 #include "catch.hpp"
-#include "catch_self_test.hpp"
 
 #include <iostream>
 #include <string>
@@ -20,7 +19,7 @@ TEST_CASE( "./succeeding/Basic/char_pointer", "pointer--NULL comparison" )
 {
     char * p = NULL;
     const char * cp = NULL;
-    
+
     REQUIRE( p == NULL );
     REQUIRE( cp == NULL );
 }
@@ -31,7 +30,7 @@ TEST_CASE( "./succeeding/Basic/struct_pointer", "pointer--NULL comparison" )
 {
     X * p = NULL;
     char * cp = NULL;
-    
+
     REQUIRE( p == NULL );
     REQUIRE( cp == NULL );
 }

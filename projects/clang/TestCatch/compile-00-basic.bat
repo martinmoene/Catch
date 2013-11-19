@@ -5,4 +5,4 @@
 :: Compile Catch selftests
 ::
 
-clang -Wall -I../../../include -o TestCatch.exe  ../../SelfTest/catch_self_test.cpp ../../SelfTest/BasicTests.cpp  &&  TestCatch
+clang -Wall -I../../../include -o TestCatch.exe  ../../SelfTest/BasicTests.cpp  &&  TestCatch

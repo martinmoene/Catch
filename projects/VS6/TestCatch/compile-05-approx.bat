@@ -5,4 +5,4 @@
 :: Compile Catch selftests
 ::
 
-cl -nologo -W3 -EHsc -GR -I../../../include -FeTestCatch.exe  ../../SelfTest/catch_self_test.cpp ../../SelfTest/ApproxTests.cpp  &&  TestCatch
+cl -nologo -W3 -EHsc -GR -I../../../include -FeTestCatch.exe  ../../SelfTest/ApproxTests.cpp  &&  TestCatch

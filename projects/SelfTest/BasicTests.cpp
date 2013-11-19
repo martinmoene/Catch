@@ -11,7 +11,6 @@
  */
 
 #include "catch.hpp"
-#include "catch_self_test.hpp"
 
 #include <iostream>
 #include <string>
