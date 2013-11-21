@@ -9,21 +9,21 @@ set(SELF_TEST_DIR ${CATCH_DIR}/projects/SelfTest)
 
 # define the sources of the self test
 set(SOURCES
-	${SELF_TEST_DIR}/ApproxTests.cpp
-	${SELF_TEST_DIR}/BasicTests.cpp
-	${SELF_TEST_DIR}/BDDTests.cpp
-	${SELF_TEST_DIR}/ClassTests.cpp
-	${SELF_TEST_DIR}/CmdLineTests.cpp
-	${SELF_TEST_DIR}/ConditionTests.cpp
-	${SELF_TEST_DIR}/ExceptionTests.cpp
-	${SELF_TEST_DIR}/GeneratorTests.cpp
-	${SELF_TEST_DIR}/MessageTests.cpp
-	${SELF_TEST_DIR}/MiscTests.cpp
-	${SELF_TEST_DIR}/PointerTests.cpp
-	${SELF_TEST_DIR}/SectionTrackerTests.cpp
-	${SELF_TEST_DIR}/TestMain.cpp
-	${SELF_TEST_DIR}/TrickyTests.cpp
-	${SELF_TEST_DIR}/VariadicMacrosTests.cpp
+    ${SELF_TEST_DIR}/ApproxTests.cpp
+    ${SELF_TEST_DIR}/BasicTests.cpp
+    ${SELF_TEST_DIR}/BDDTests.cpp
+    ${SELF_TEST_DIR}/ClassTests.cpp
+    ${SELF_TEST_DIR}/CmdLineTests.cpp
+    ${SELF_TEST_DIR}/ConditionTests.cpp
+    ${SELF_TEST_DIR}/ExceptionTests.cpp
+    ${SELF_TEST_DIR}/GeneratorTests.cpp
+    ${SELF_TEST_DIR}/MessageTests.cpp
+    ${SELF_TEST_DIR}/MiscTests.cpp
+    ${SELF_TEST_DIR}/PointerTests.cpp
+    ${SELF_TEST_DIR}/SectionTrackerTests.cpp
+    ${SELF_TEST_DIR}/TestMain.cpp
+    ${SELF_TEST_DIR}/TrickyTests.cpp
+    ${SELF_TEST_DIR}/VariadicMacrosTests.cpp
 )
 
 # configure the executable
