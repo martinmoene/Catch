@@ -2734,6 +2734,9 @@
       <Failure/>
       <OverallResult success="false"/>
     </TestCase>
+    <TestCase name="SUCCESS does not require an argument">
+      <OverallResult success="true"/>
+    </TestCase>
     <TestCase name="Output from all sections is reported">
       <Section name="one">
         <Failure>
@@ -6646,17 +6649,6 @@ there&quot;
         </Original>
         <Expanded>
           __null == 0
-        </Expanded>
-      </Expression>
-      <OverallResult success="true"/>
-    </TestCase>
-    <TestCase name="null_ptr">
-      <Expression success="true" filename="/Users/philnash/Dev/OSS/Catch/projects/SelfTest/TrickyTests.cpp" >
-        <Original>
-          ptr.get() == std::__1::__get_nullptr_t()
-        </Original>
-        <Expanded>
-          __null == nullptr
         </Expanded>
       </Expression>
       <OverallResult success="true"/>

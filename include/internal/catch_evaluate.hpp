@@ -203,10 +203,10 @@ namespace Internal {
 #ifdef CATCH_CONFIG_CPP11_NULLPTR
     // pointer to nullptr_t (when comparing against nullptr)
     template<Operator Op, typename T> bool compare( std::nullptr_t, T* rhs ) {
-        return Evaluator<T*, T*, Op>::evaluate( NULL, rhs );
+        return Evaluator<Op>::evaluate( NULL, rhs );
     }
     template<Operator Op, typename T> bool compare( T* lhs, std::nullptr_t ) {
-        return Evaluator<T*, T*, Op>::evaluate( lhs, NULL );
+        return Evaluator<Op>::evaluate( lhs, NULL );
     }
 #endif // CATCH_CONFIG_CPP11_NULLPTR
 
