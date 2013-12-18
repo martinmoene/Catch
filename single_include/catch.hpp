@@ -1,6 +1,6 @@
 /*
- *  CATCH-VC6 v1.0 build 19 (master branch)
- *  Generated: 2013-12-15 10:48:44.672000
+ *  CATCH-VC6 v1.0 build 20 (master branch)
+ *  Generated: 2013-12-18 18:13:26.492000
  *  ----------------------------------------------------------
  *  This file has been merged from multiple headers. Please don't edit it directly
  *  Copyright (c) 2012 Two Blue Cubes Ltd. All rights reserved.
@@ -6639,7 +6639,7 @@ namespace Catch {
 namespace Catch {
 
     // These numbers are maintained by a script
-    Version libraryVersion( 1, 0, 19, "master" );
+    Version libraryVersion( 1, 0, 20, "master" );
 }
 
 // #included from: catch_text.hpp
@@ -7212,9 +7212,15 @@ namespace Catch {
             std::string stdOut;
             std::string stdErr;
         };
-        friend bool operator == ( Ptr<SectionNode> const& node, SectionInfo const& other ) {
-            return node->stats.sectionInfo.lineInfo == other.lineInfo;
-        }
+
+        struct BySectionInfo {
+            BySectionInfo( SectionInfo const& other ) : m_other( other ) {}
+            bool operator() ( Ptr<SectionNode> const& node ) const {
+                return node->stats.sectionInfo.lineInfo == m_other.lineInfo;
+            }
+        private:
+            SectionInfo const& m_other;
+        };
 
         typedef Node<TestCaseStats, SectionNode> TestCaseNode;
         typedef Node<TestGroupStats, TestCaseNode> TestGroupNode;
@@ -7242,7 +7248,9 @@ namespace Catch {
             else {
                 SectionNode& parentNode = *m_sectionStack.back();
                 SectionNode::ChildSections::const_iterator it =
-                    std::find( parentNode.childSections.begin(), parentNode.childSections.end(), sectionInfo );
+                    std::find_if(   parentNode.childSections.begin(),
+                                    parentNode.childSections.end(),
+                                    BySectionInfo( sectionInfo ) );
                 if( it == parentNode.childSections.end() ) {
                     node = new SectionNode( incompleteStats );
                     parentNode.childSections.push_back( node );
