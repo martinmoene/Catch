@@ -83,6 +83,24 @@ namespace Detail {
         }
     };
 
+    // For display purposes only.
+    // Does not consider endian-ness
+    template<typename T>
+    std::string rawMemoryToString( T value ) {
+        union {
+            T typedValue;
+            unsigned char bytes[sizeof(T)];
+        } u;
+
+        u.typedValue = value;
+
+        std::ostringstream oss;
+        oss << "0x";
+        for( unsigned char* cp = u.bytes; cp < u.bytes+sizeof(T); ++cp )
+            oss << std::hex << std::setw(2) << std::setfill('0') << (unsigned int)*cp;
+        return oss.str();
+    }
+
 } // end namespace Detail
 
 #ifdef INTERNAL_CATCH_COMPILER_IS_MSVC6
@@ -125,25 +143,21 @@ struct StringMakerVariant<Detail::pointerSelector::value> {
     static std::string convert( T const * const p ) {
         if( !p )
             return "(NULL)"; // return INTERNAL_CATCH_STRINGIFY( NULL );
-        std::ostringstream oss;
-        oss << p;
-        return oss.str();
+        else
+            return Detail::rawMemoryToString( p );
     }
 };
 
+namespace Detail {
+    template<typename InputIterator>
+    std::string rangeToString( InputIterator first, InputIterator last );
+}
+
 template<>
 struct StringMakerVariant<Detail::vectorSelector::value> {
-    template<typename T>
-    static std::string convert( std::vector<T> const & v ) {
-        std::ostringstream oss;
-        oss << "{ ";
-        for( std::size_t i = 0; i < v.size(); ++ i ) {
-            oss << toString( v[i] ); // Catch::
-            if( i < v.size() - 1 )
-                oss << ", ";
-        }
-        oss << " }";
-        return oss.str();
+template<typename T, typename Allocator>
+    static std::string convert( std::vector<T,Allocator> const& v ) {
+        return Detail::rangeToString( v.begin(), v.end() );
     }
 };
 
@@ -174,9 +188,18 @@ struct StringMaker<T*> {
     static std::string convert( U* p ) {
         if( !p )
             return INTERNAL_CATCH_STRINGIFY( NULL );
-        std::ostringstream oss;
-        oss << p;
-        return oss.str();
+        else
+            return Detail::rawMemoryToString( p );
+    }
+};
+
+template<typename R, typename C>
+struct StringMaker<R C::*> {
+    static std::string convert( R C::* p ) {
+        if( !p )
+            return INTERNAL_CATCH_STRINGIFY( NULL );
+        else
+            return Detail::rawMemoryToString( p );
     }
 };
 

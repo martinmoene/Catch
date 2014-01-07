@@ -129,7 +129,7 @@ TEST_CASE
 
 ///////////////////////////////////////////////////////////////////////////////
 TEST_CASE
-(   
+(
     "string literals of different sizes can be compared[failing]",
     "[Tricky][failing][.]"
 )
@@ -139,7 +139,7 @@ TEST_CASE
 
 ///////////////////////////////////////////////////////////////////////////////
 TEST_CASE
-(   
+(
     "An expression with side-effects should only be evaluated once",
     "[Tricky]"
 )
@@ -426,6 +426,20 @@ TEST_CASE( "Comparing function pointers", "[Tricky][function pointer]" )
 
     REQUIRE( a );
     REQUIRE( a == &foo );
+}
+
+struct S
+{
+    void f() {}
+};
+
+
+TEST_CASE( "Comparing member function pointers", "[Tricky][member function pointer]" )
+{
+    typedef void (S::*MF)();
+    MF m = &S::f;
+
+    CHECK( m == &S::f );
 }
 
 #endif
