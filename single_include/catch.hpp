@@ -1,6 +1,6 @@
 /*
- *  CATCH-VC6 v1.0 build 24 (master branch)
- *  Generated: 2014-01-07 20:10:18.968000
+ *  CATCH-VC6 v1.0 build 25 (master branch)
+ *  Generated: 2014-01-08 18:26:56.022000
  *  ----------------------------------------------------------
  *  This file has been merged from multiple headers. Please don't edit it directly
  *  Copyright (c) 2012 Two Blue Cubes Ltd. All rights reserved.
@@ -6675,7 +6675,7 @@ namespace Catch {
 namespace Catch {
 
     // These numbers are maintained by a script
-    Version libraryVersion( 1, 0, 24, "master" );
+    Version libraryVersion( 1, 0, 25, "master" );
 }
 
 // #included from: catch_text.hpp
@@ -7094,7 +7094,6 @@ namespace Catch {
         // running under the debugger or has a debugger attached post facto).
         bool isDebuggerActive(){
 
-            int                 junk;
             int                 mib[4];
             struct kinfo_proc   info;
             size_t              size;
@@ -7115,8 +7114,10 @@ namespace Catch {
             // Call sysctl.
 
             size = sizeof(info);
-            junk = sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0);
-            assert(junk == 0);
+            if( sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0) != 0 ) {
+                std::cerr << "\n** Call to sysctl failed - unable to determine if debugger is active **\n" << std::endl;
+                return false;
+            }
 
             // We're being debugged if the P_TRACED flag is set.
 
