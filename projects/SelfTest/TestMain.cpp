@@ -16,7 +16,7 @@
 
 template<typename ArgvT>
 void parseIntoConfig( ArgvT const & argv, Catch::ConfigData& config ) {
-    Clara::CommandLine<Catch::ConfigData> parser = Catch::makeCommandLineParser();
+    Catch::Clara::CommandLine<Catch::ConfigData> parser = Catch::makeCommandLineParser();
     parser.parseInto( CATCH_DIMENSION_OF(argv), argv, config );
 }
 
