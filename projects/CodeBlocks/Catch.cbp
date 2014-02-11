@@ -34,6 +34,7 @@
 		<Unit filename="../../include/internal/catch_assertionresult.h" />
 		<Unit filename="../../include/internal/catch_assertionresult.hpp" />
 		<Unit filename="../../include/internal/catch_capture.hpp" />
+		<Unit filename="../../include/internal/catch_clara.h" />
 		<Unit filename="../../include/internal/catch_commandline.hpp" />
 		<Unit filename="../../include/internal/catch_common.h" />
 		<Unit filename="../../include/internal/catch_common.hpp" />
@@ -112,6 +113,7 @@
 		<Unit filename="../../include/internal/catch_version.hpp" />
 		<Unit filename="../../include/internal/catch_xmlwriter.hpp" />
 		<Unit filename="../../include/internal/clara.h" />
+		<Unit filename="../../include/internal/tbc_text_format.h" />
 		<Unit filename="../../include/reporters/catch_reporter_bases.hpp" />
 		<Unit filename="../../include/reporters/catch_reporter_console.hpp" />
 		<Unit filename="../../include/reporters/catch_reporter_junit.hpp" />
