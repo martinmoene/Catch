@@ -22,6 +22,7 @@
 #include "tbc_text_format.h"
 #undef CLICHE_TBC_TEXT_FORMAT_OUTER_NAMESPACE
 
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <map>
@@ -412,14 +413,14 @@ namespace Clara {
             // two methods leads to C*& instead of C&
 
             // NTS: problematic: use Catch::ConfigData type explicitly
-            ArgBinder( CommandLine<ConfigT>* cl, void (*_function)( Catch::ConfigData& ) )
+            ArgBinder( CommandLine<ConfigT>* cl, void (*_function)( ConfigT& ) )
             :   m_cl( cl )
             ,  m_arg( Detail::makeBoundField<Catch::ConfigData,int>( _function ) )
             {}
 
             // NTS: problematic: use Catch::ConfigData type explicitly
             template<typename T>
-            ArgBinder( CommandLine<ConfigT>* cl, void (*_function)( Catch::ConfigData&, T ) )
+            ArgBinder( CommandLine<ConfigT>* cl, void (*_function)( ConfigT&, T ) )
             :   m_cl( cl )
             ,  m_arg( Detail::makeBoundField<Catch::ConfigData,T>( _function ) )
             {}

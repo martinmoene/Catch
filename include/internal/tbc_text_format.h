@@ -20,6 +20,18 @@
 #include <vector>
 #include <sstream>
 
+#ifdef _MSC_VER
+#define INTERNAL_CATCH_COMPILER_IS_MSVC
+#if ( _MSC_VER >= 1200 ) && ( _MSC_VER < 1300 )
+#define INTERNAL_CATCH_COMPILER_IS_MSVC6
+#endif
+#endif
+
+#ifdef INTERNAL_CATCH_COMPILER_IS_MSVC6
+// Note: for VC6 this re-couples tbc_text_format to Catch (for the moment).
+#include "catch_common.h"
+#endif
+
 // Use optional outer namespace
 #ifdef CLICHE_TBC_TEXT_FORMAT_OUTER_NAMESPACE
 namespace CLICHE_TBC_TEXT_FORMAT_OUTER_NAMESPACE {
