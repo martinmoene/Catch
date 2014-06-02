@@ -13,7 +13,6 @@ set(SOURCES
     ${SELF_TEST_DIR}/BasicTests.cpp
     ${SELF_TEST_DIR}/BDDTests.cpp
     ${SELF_TEST_DIR}/ClassTests.cpp
-    ${SELF_TEST_DIR}/CmdLineTests.cpp
     ${SELF_TEST_DIR}/ConditionTests.cpp
     ${SELF_TEST_DIR}/ExceptionTests.cpp
     ${SELF_TEST_DIR}/GeneratorTests.cpp

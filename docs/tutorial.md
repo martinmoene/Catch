@@ -98,7 +98,7 @@ Most test frameworks have a class-based fixture mechanism. That is, test cases m
 
 While Catch fully supports this way of working there are a few problems with the approach. In particular the way your code must be split up, and the blunt granularity (you can only have one setup/ teardown pair across a set of methods - sometimes you want slightly different setup in each method - or you may want several levels of setup. We'll revisit that concept shortly and, hopefully, make it clearer). It was <a href="http://jamesnewkirk.typepad.com/posts/2007/09/why-you-should-.html">problems like these</a> that led James Newkirk, who led the team that built NUnit, to start again from scratch and <a href="http://jamesnewkirk.typepad.com/posts/2007/09/announcing-xuni.html">build xUnit</a>).
 
-Catch takes a different approach (to both NUnut and xUnit) that is a more natural fit for C++ and the C family of languages. This is best explaned through an example:
+Catch takes a different approach (to both NUnit and xUnit) that is a more natural fit for C++ and the C family of languages. This is best explaned through an example:
 
 ```c++
 TEST_CASE( "vectors can be sized and resized", "[vector]" ) {
@@ -142,6 +142,7 @@ So far so good - this is already an improvement on the setup/ teardown approach 
 
 The power of sections really shows, however, when we need to execute a sequence of, checked, operations. Continuing the vector example we might want to verify that after reserving a larger capacity, if we reserve smaller capacity (but still larger than the current size) then the capacity is not, in fact, changed. We can do that, naturally, like so:
 
+```c++
     SECTION( "reserving bigger changes capacity but not size" ) {
         v.reserve( 10 );
         
@@ -154,6 +155,7 @@ The power of sections really shows, however, when we need to execute a sequence 
             REQUIRE( v.capacity() >= 10 );
         }
     }
+```
 
 Sections can be nested to an arbitrary depth (limited only by your stack size). Each leaf section (i.e. a section that contains no nested sections) will be executed exactly once, on a separate path of execution from any other leaf section (so no leaf section can interfere with another). Obviously a failure in a parent section will prevent nested sections from running - but that's the idea.
 

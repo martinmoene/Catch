@@ -1,12 +1,10 @@
 ![catch logo](catch-logo-small.png)
 
-*CATCH-VC6 v1.0 build 26 (master branch)*
+*CATCH-VC6 v1.0 build 47 (master branch)*
 
 Build status (on Travis CI) [![Build Status](https://travis-ci.org/martinmoene/Catch.png)](https://travis-ci.org/martinmoene/Catch)
 
-# New release with significant changes
-
-[Please see this page for details - including some breaking changes](docs/whats-changed.md)
+[Please see this page if you are updating from a version before 1.0](docs/whats-changed.md)
 
 ## What's the Catch?
 

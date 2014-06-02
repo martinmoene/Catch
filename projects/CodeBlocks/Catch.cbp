@@ -30,6 +30,8 @@
 		<Unit filename="../../include/catch.hpp" />
 		<Unit filename="../../include/catch_runner.hpp" />
 		<Unit filename="../../include/catch_with_main.hpp" />
+		<Unit filename="../../include/external/clara.h" />
+		<Unit filename="../../include/external/tbc_text_format.h" />
 		<Unit filename="../../include/internal/catch_approx.hpp" />
 		<Unit filename="../../include/internal/catch_assertionresult.h" />
 		<Unit filename="../../include/internal/catch_assertionresult.hpp" />
@@ -78,6 +80,7 @@
 		<Unit filename="../../include/internal/catch_option.hpp" />
 		<Unit filename="../../include/internal/catch_platform.h" />
 		<Unit filename="../../include/internal/catch_ptr.hpp" />
+		<Unit filename="../../include/internal/catch_reenable_warnings.h" />
 		<Unit filename="../../include/internal/catch_registry_hub.hpp" />
 		<Unit filename="../../include/internal/catch_reporter_registrars.hpp" />
 		<Unit filename="../../include/internal/catch_reporter_registry.hpp" />
@@ -93,6 +96,7 @@
 		<Unit filename="../../include/internal/catch_stream.h" />
 		<Unit filename="../../include/internal/catch_stream.hpp" />
 		<Unit filename="../../include/internal/catch_streambuf.h" />
+		<Unit filename="../../include/internal/catch_suppress_warnings.h" />
 		<Unit filename="../../include/internal/catch_tags.h" />
 		<Unit filename="../../include/internal/catch_tags.hpp" />
 		<Unit filename="../../include/internal/catch_test_case_info.h" />
@@ -102,11 +106,13 @@
 		<Unit filename="../../include/internal/catch_test_registry.hpp" />
 		<Unit filename="../../include/internal/catch_test_spec.h" />
 		<Unit filename="../../include/internal/catch_test_spec.hpp" />
+		<Unit filename="../../include/internal/catch_test_spec_parser.hpp" />
 		<Unit filename="../../include/internal/catch_text.h" />
 		<Unit filename="../../include/internal/catch_text.hpp" />
 		<Unit filename="../../include/internal/catch_time_string.hpp" />
 		<Unit filename="../../include/internal/catch_timer.h" />
 		<Unit filename="../../include/internal/catch_timer.hpp" />
+		<Unit filename="../../include/internal/catch_tostring.h" />
 		<Unit filename="../../include/internal/catch_tostring.hpp" />
 		<Unit filename="../../include/internal/catch_totals.hpp" />
 		<Unit filename="../../include/internal/catch_version.h" />
@@ -115,6 +121,7 @@
 		<Unit filename="../../include/internal/clara.h" />
 		<Unit filename="../../include/internal/tbc_text_format.h" />
 		<Unit filename="../../include/reporters/catch_reporter_bases.hpp" />
+		<Unit filename="../../include/reporters/catch_reporter_compact.hpp" />
 		<Unit filename="../../include/reporters/catch_reporter_console.hpp" />
 		<Unit filename="../../include/reporters/catch_reporter_junit.hpp" />
 		<Unit filename="../../include/reporters/catch_reporter_xml.hpp" />
@@ -158,6 +165,7 @@
 		<Unit filename="../SelfTest/TestMain.cpp" />
 		<Unit filename="../SelfTest/TrickyTests.cpp" />
 		<Unit filename="../SelfTest/VariadicMacrosTests.cpp" />
+		<Unit filename="../SelfTest/makefile" />
 		<Unit filename="../Tutorial/Tutorial1.cpp" />
 		<Unit filename="../VS2005/README.md" />
 		<Unit filename="../VS2005/TestCatch/compile-debug.bat" />

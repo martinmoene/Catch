@@ -7,34 +7,195 @@
  */
 
 // Only use header guard if we are not using an outer namespace
-#ifndef CLICHE_CLARA_OUTER_NAMESPACE
-# ifdef TWOBLUECUBES_CLARA_H_INCLUDED
-#  ifndef TWOBLUECUBES_CLARA_H_ALREADY_INCLUDED
-#   define TWOBLUECUBES_CLARA_H_ALREADY_INCLUDED
-#  endif
-# else
-#  define TWOBLUECUBES_CLARA_H_INCLUDED
-# endif
-#endif
-#ifndef TWOBLUECUBES_CLARA_H_ALREADY_INCLUDED
+#if !defined(TWOBLUECUBES_CLARA_H_INCLUDED) || defined(STITCH_CLARA_OPEN_NAMESPACE)
 
-#define CLICHE_TBC_TEXT_FORMAT_OUTER_NAMESPACE Clara
-#include "tbc_text_format.h"
-#undef CLICHE_TBC_TEXT_FORMAT_OUTER_NAMESPACE
+#ifndef STITCH_CLARA_OPEN_NAMESPACE
+#define TWOBLUECUBES_CLARA_H_INCLUDED
+#define STITCH_CLARA_OPEN_NAMESPACE
+#define STITCH_CLARA_CLOSE_NAMESPACE
+#else
+#define STITCH_CLARA_CLOSE_NAMESPACE }
+#endif
+
+
+#define STITCH_TBC_TEXT_FORMAT_OPEN_NAMESPACE STITCH_CLARA_OPEN_NAMESPACE
+
+// ----------- #included from tbc_text_format.h -----------
+
+/*
+ *  Created by Phil on 18/4/2013.
+ *  Copyright 2013 Two Blue Cubes Ltd. All rights reserved.
+ *
+ *  Distributed under the Boost Software License, Version 1.0. (See accompanying
+ *  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ */
+// Only use header guard if we are not using an outer namespace
+#if !defined(TBC_TEXT_FORMAT_H_INCLUDED) || defined(STITCH_TBC_TEXT_FORMAT_OUTER_NAMESPACE)
+#ifndef STITCH_TBC_TEXT_FORMAT_OUTER_NAMESPACE
+#define TBC_TEXT_FORMAT_H_INCLUDED
+#endif
 
 #include <string>
 #include <vector>
+#include <sstream>
+
+// Use optional outer namespace
+#ifdef STITCH_TBC_TEXT_FORMAT_OUTER_NAMESPACE
+namespace STITCH_TBC_TEXT_FORMAT_OUTER_NAMESPACE {
+#endif
+
+namespace Tbc {
+
+#ifdef TBC_TEXT_FORMAT_CONSOLE_WIDTH
+    const unsigned int consoleWidth = TBC_TEXT_FORMAT_CONSOLE_WIDTH;
+#else
+    const unsigned int consoleWidth = 80;
+#endif
+
+    struct TextAttributes {
+        TextAttributes()
+        :   initialIndent( std::string::npos ),
+            indent( 0 ),
+            width( consoleWidth-1 ),
+            tabChar( '\t' )
+        {}
+
+        TextAttributes& setInitialIndent( std::size_t _value )  { initialIndent = _value; return *this; }
+        TextAttributes& setIndent( std::size_t _value )         { indent = _value; return *this; }
+        TextAttributes& setWidth( std::size_t _value )          { width = _value; return *this; }
+        TextAttributes& setTabChar( char _value )               { tabChar = _value; return *this; }
+
+        std::size_t initialIndent;  // indent of first line, or npos
+        std::size_t indent;         // indent of subsequent lines, or all if initialIndent is npos
+        std::size_t width;          // maximum width of text, including indent. Longer text will wrap
+        char tabChar;               // If this char is seen the indent is changed to current pos
+    };
+
+    class Text {
+    public:
+        Text( std::string const& _str, TextAttributes const& _attr = TextAttributes() )
+        : attr( _attr )
+        {
+            std::string wrappableChars = " [({.,/|\\-";
+            std::size_t indent = _attr.initialIndent != std::string::npos
+                ? _attr.initialIndent
+                : _attr.indent;
+            std::string remainder = _str;
+
+            while( !remainder.empty() ) {
+                if( lines.size() >= 1000 ) {
+                    lines.push_back( "... message truncated due to excessive size" );
+                    return;
+                }
+                std::size_t tabPos = std::string::npos;
+                std::size_t width = (std::min)( remainder.size(), _attr.width - indent );
+                std::size_t pos = remainder.find_first_of( '\n' );
+                if( pos <= width ) {
+                    width = pos;
+                }
+                pos = remainder.find_last_of( _attr.tabChar, width );
+                if( pos != std::string::npos ) {
+                    tabPos = pos;
+                    if( remainder[width] == '\n' )
+                        width--;
+                    remainder = remainder.substr( 0, tabPos ) + remainder.substr( tabPos+1 );
+                }
+
+                if( width == remainder.size() ) {
+                    spliceLine( indent, remainder, width );
+                }
+                else if( remainder[width] == '\n' ) {
+                    spliceLine( indent, remainder, width );
+                    if( width <= 1 || remainder.size() != 1 )
+                        remainder = remainder.substr( 1 );
+                    indent = _attr.indent;
+                }
+                else {
+                    pos = remainder.find_last_of( wrappableChars, width );
+                    if( pos != std::string::npos && pos > 0 ) {
+                        spliceLine( indent, remainder, pos );
+                        if( remainder[0] == ' ' )
+                            remainder = remainder.substr( 1 );
+                    }
+                    else {
+                        spliceLine( indent, remainder, width-1 );
+                        lines.back() += "-";
+                    }
+                    if( lines.size() == 1 )
+                        indent = _attr.indent;
+                    if( tabPos != std::string::npos )
+                        indent += tabPos;
+                }
+            }
+        }
+
+        void spliceLine( std::size_t _indent, std::string& _remainder, std::size_t _pos ) {
+            lines.push_back( std::string( _indent, ' ' ) + _remainder.substr( 0, _pos ) );
+            _remainder = _remainder.substr( _pos );
+        }
+
+        typedef std::vector<std::string>::const_iterator const_iterator;
+
+        const_iterator begin() const { return lines.begin(); }
+        const_iterator end() const { return lines.end(); }
+        std::string const& last() const { return lines.back(); }
+        std::size_t size() const { return lines.size(); }
+        std::string const& operator[]( std::size_t _index ) const { return lines[_index]; }
+        std::string toString() const {
+            std::ostringstream oss;
+            oss << *this;
+            return oss.str();
+        }
+
+        inline friend std::ostream& operator << ( std::ostream& _stream, Text const& _text ) {
+            for( Text::const_iterator it = _text.begin(), itEnd = _text.end();
+                it != itEnd; ++it ) {
+                if( it != _text.begin() )
+                    _stream << "\n";
+                _stream << *it;
+            }
+            return _stream;
+        }
+
+    private:
+        std::string str;
+        TextAttributes attr;
+        std::vector<std::string> lines;
+    };
+
+} // end namespace Tbc
+
+#ifdef STITCH_TBC_TEXT_FORMAT_OUTER_NAMESPACE
+} // end outer namespace
+#endif
+
+#endif // TBC_TEXT_FORMAT_H_INCLUDED
+
+// ----------- end of #include from tbc_text_format.h -----------
+// ........... back in /Users/philnash/Dev/OSS/Clara/srcs/clara.h
+
+#undef STITCH_TBC_TEXT_FORMAT_OPEN_NAMESPACE
+
+
 #include <map>
 #include <algorithm>
 #include <stdexcept>
 #include <memory>
 
 // Use optional outer namespace
-#ifdef CLICHE_CLARA_OUTER_NAMESPACE
-namespace CLICHE_CLARA_OUTER_NAMESPACE {
+#ifdef STITCH_CLARA_OPEN_NAMESPACE
+STITCH_CLARA_OPEN_NAMESPACE
 #endif
 
 namespace Clara {
+
+    struct UnpositionalTag {};
+
+    extern UnpositionalTag _;
+
+#ifdef CLARA_CONFIG_MAIN
+    UnpositionalTag _;
+#endif
 
     namespace Detail {
 
@@ -44,7 +205,11 @@ namespace Clara {
     const unsigned int consoleWidth = 80;
 #endif
 
-        using namespace ::Clara::Tbc;
+        using namespace Tbc;
+
+        inline bool startsWith( std::string const& str, std::string const& prefix ) {
+            return str.size() >= prefix.size() && str.substr( 0, prefix.size() ) == prefix;
+        }
 
         template<typename T> struct RemoveConstRef{ typedef T type; };
 
@@ -110,6 +275,10 @@ namespace Clara {
         template<typename ConfigT>
         struct IArgFunction {
             virtual ~IArgFunction() {}
+#  ifdef CATCH_CPP11_OR_GREATER
+            IArgFunction()                      = default;
+            IArgFunction( IArgFunction const& ) = default;
+#  endif
             virtual void set( ConfigT& config, std::string const& value ) const = 0;
             virtual void setFlag( ConfigT& config ) const = 0;
             virtual bool takesArg() const = 0;
@@ -119,10 +288,11 @@ namespace Clara {
         template<typename ConfigT>
         class BoundArgFunction {
         public:
+            BoundArgFunction() : functionObj( NULL ) {}
             BoundArgFunction( IArgFunction<ConfigT>* _functionObj ) : functionObj( _functionObj ) {}
-            BoundArgFunction( BoundArgFunction const& other ) : functionObj( other.functionObj->clone() ) {}
+            BoundArgFunction( BoundArgFunction const& other ) : functionObj( other.functionObj ? other.functionObj->clone() : NULL ) {}
             BoundArgFunction& operator = ( BoundArgFunction const& other ) {
-                IArgFunction<ConfigT>* newFunctionObj = other.functionObj->clone();
+                IArgFunction<ConfigT>* newFunctionObj = other.functionObj ? other.functionObj->clone() : NULL;
                 delete functionObj;
                 functionObj = newFunctionObj;
                 return *this;
@@ -136,6 +306,10 @@ namespace Clara {
                 functionObj->setFlag( config );
             }
             bool takesArg() const { return functionObj->takesArg(); }
+
+            bool isSet() const {
+                return functionObj != NULL;
+            }
         private:
             IArgFunction<ConfigT>* functionObj;
         };
@@ -231,38 +405,6 @@ namespace Clara {
             void (*function)( C&, T );
         };
 
-        template<typename C, typename M>
-        BoundArgFunction<C> makeBoundField( M C::* _member ) {
-            return BoundArgFunction<C>( new BoundDataMember<C,M>( _member ) );
-        }
-        template<typename C, typename M>
-        BoundArgFunction<C> makeBoundField( void (C::*_member)( M ) ) {
-            return BoundArgFunction<C>( new BoundUnaryMethod<C,M>( _member ) );
-        }
-
-#ifndef INTERNAL_CATCH_COMPILER_IS_MSVC6
-        template<typename C>
-        BoundArgFunction<C> makeBoundField( void (C::*_member)() ) {
-            return BoundArgFunction<C>( new BoundNullaryMethod<C>( _member ) );
-        }
-        template<typename C>
-        BoundArgFunction<C> makeBoundField( void (*_function)( C& ) ) {
-            return BoundArgFunction<C>( new BoundUnaryFunction<C>( _function ) );
-        }
-#else
-        template<typename C, typename U>
-        BoundArgFunction<C> makeBoundField( void (C::*_member)(), U u=U() ) {
-            return BoundArgFunction<C>( new BoundNullaryMethod<C>( _member ) );
-        }
-        template<typename C, typename U>
-        BoundArgFunction<C> makeBoundField( void (*_function)( C& ), U u=U() ) {
-            return BoundArgFunction<C>( new BoundUnaryFunction<C>( _function ) );
-        }
-#endif
-        template<typename C, typename T>
-        BoundArgFunction<C> makeBoundField( void (*_function)( C&, T ) ) {
-            return BoundArgFunction<C>( new BoundBinaryFunction<C, T>( _function ) );
-        }
     } // namespace Detail
 
     struct Parser {
@@ -310,42 +452,58 @@ namespace Clara {
     };
 
     template<typename ConfigT>
+    struct CommonArgProperties {
+        CommonArgProperties() {}
+        CommonArgProperties( Detail::BoundArgFunction<ConfigT> const& _boundField ) : boundField( _boundField ) {}
+
+        Detail::BoundArgFunction<ConfigT> boundField;
+        std::string description;
+        std::string detail;
+        std::string placeholder; // Only value if boundField takes an arg
+
+        bool takesArg() const {
+            return !placeholder.empty();
+        }
+        void validate() const {
+            if( !boundField.isSet() )
+                throw std::logic_error( "option not bound" );
+        }
+    };
+    struct OptionArgProperties {
+        std::vector<std::string> shortNames;
+        std::string longName;
+
+        bool hasShortName( std::string const& shortName ) const {
+            return std::find( shortNames.begin(), shortNames.end(), shortName ) != shortNames.end();
+        }
+        bool hasLongName( std::string const& _longName ) const {
+            return _longName == longName;
+        }
+    };
+    struct PositionalArgProperties {
+        PositionalArgProperties() : position( -1 ) {}
+        int position; // -1 means non-positional (floating)
+
+        bool isFixedPositional() const {
+            return position != -1;
+        }
+    };
+
+    template<typename ConfigT>
     class CommandLine {
 
-        struct Arg {
-            Arg( Detail::BoundArgFunction<ConfigT> const& _boundField ) : boundField( _boundField ), position( -1 ) {}
+        struct Arg : CommonArgProperties<ConfigT>, OptionArgProperties, PositionalArgProperties {
+            Arg() {}
+            Arg( Detail::BoundArgFunction<ConfigT> const& _boundField ) : CommonArgProperties<ConfigT>( _boundField ) {}
 
-            bool hasShortName( std::string const& shortName ) const {
-                for(    std::vector<std::string>::const_iterator
-                            it = shortNames.begin(), itEnd = shortNames.end();
-                        it != itEnd;
-                        ++it )
-                    if( *it == shortName )
-                        return true;
-                return false;
-            }
-            bool hasLongName( std::string const& _longName ) const {
-                return _longName == longName;
-            }
-            bool takesArg() const {
-                return !hint.empty();
-            }
-            bool isFixedPositional() const {
-                return position != -1;
-            }
-            bool isAnyPositional() const {
-                return position == -1 && shortNames.empty() && longName.empty();
-            }
+            using CommonArgProperties<ConfigT>::placeholder; // !TBD
+
             std::string dbgName() const {
                 if( !longName.empty() )
                     return "--" + longName;
                 if( !shortNames.empty() )
                     return "-" + shortNames[0];
                 return "positional args";
-            }
-            void validate() const {
-                if( boundField.takesArg() && !takesArg() )
-                    throw std::logic_error( dbgName() + " must specify an arg name" );
             }
             std::string commands() const {
                 std::ostringstream oss;
@@ -363,17 +521,10 @@ namespace Clara {
                         oss << ", ";
                     oss << "--" << longName;
                 }
-                if( !hint.empty() )
-                    oss << " <" << hint << ">";
+                if( !placeholder.empty() )
+                    oss << " <" << placeholder << ">";
                 return oss.str();
             }
-
-            Detail::BoundArgFunction<ConfigT> boundField;
-            std::vector<std::string> shortNames;
-            std::string longName;
-            std::string description;
-            std::string hint;
-            int position;
         };
 
         // NOTE: std::auto_ptr is deprecated in c++11/c++0x
@@ -383,96 +534,114 @@ namespace Clara {
         typedef std::auto_ptr<Arg> ArgAutoPtr;
 #endif
 
-        class ArgBinder {
+        friend void addOptName( Arg& arg, std::string const& optName )
+        {
+            if( optName.empty() )
+                return;
+            if( Detail::startsWith( optName, "--" ) ) {
+                if( !arg.longName.empty() )
+                    throw std::logic_error( "Only one long opt may be specified. '"
+                        + arg.longName
+                        + "' already specified, now attempting to add '"
+                        + optName + "'" );
+                arg.longName = optName.substr( 2 );
+            }
+            else if( Detail::startsWith( optName, "-" ) )
+                arg.shortNames.push_back( optName.substr( 1 ) );
+            else
+                throw std::logic_error( "option must begin with - or --. Option was: '" + optName + "'" );
+        }
+        friend void setPositionalArg( Arg& arg, int position )
+        {
+            arg.position = position;
+        }
+
+
+        class ArgBuilder {
         public:
+            ArgBuilder( Arg* arg ) : m_arg( arg ) {}
 
-#ifndef INTERNAL_CATCH_COMPILER_IS_MSVC6
-            template<typename F>
-            ArgBinder( CommandLine* cl, F f )
-            :   m_cl( cl ),
-                m_arg( Detail::makeBoundField( f ) )
-            {}
-#else
+            // Bind a non-boolean data member (requires placeholder string)
             template<typename C, typename M>
-            ArgBinder( CommandLine<ConfigT>* cl, M C::* _member  )
-            :   m_cl( cl )
-            ,  m_arg( Detail::makeBoundField<C,M>( _member ) )
-            {}
-
-            template<typename C, typename M>
-            ArgBinder( CommandLine<ConfigT>* cl, void (C::*_member)( M ) )
-            :   m_cl( cl )
-            ,  m_arg( Detail::makeBoundField<C,M>( _member ) )
-            {}
-
+            void bind( M C::* field, std::string const& placeholder ) {
+                m_arg->boundField = new Detail::BoundDataMember<C,M>( field );
+                m_arg->placeholder = placeholder;
+            }
+            // Bind a boolean data member (no placeholder required)
             template<typename C>
-            ArgBinder( CommandLine<ConfigT>* cl, void (C::*_member)() )
-            :   m_cl( cl )
-            ,  m_arg( Detail::makeBoundField<C,int>( _member ) )
-            {}
+            void bind( bool C::* field ) {
+                m_arg->boundField = new Detail::BoundDataMember<C,bool>( field );
+            }
 
-            // Using template parameter deduction in the following
+            // Bind a method taking a single, non-boolean argument (requires a placeholder string)
+            template<typename C, typename M>
+            void bind( void (C::* unaryMethod)( M ), std::string const& placeholder ) {
+                m_arg->boundField = new Detail::BoundUnaryMethod<C,M>( unaryMethod );
+                m_arg->placeholder = placeholder;
+            }
+
+            // Bind a method taking a single, boolean argument (no placeholder string required)
+            template<typename C>
+            void bind( void (C::* unaryMethod)( bool ) ) {
+                m_arg->boundField = new Detail::BoundUnaryMethod<C,bool>( unaryMethod );
+            }
+
+            // Bind a method that takes no arguments (will be called if opt is present)
+            template<typename C>
+            void bind( void (C::* nullaryMethod)() ) {
+                m_arg->boundField = new Detail::BoundNullaryMethod<C>( nullaryMethod );
+            }
+
+            // Using template parameter deduction with VC6 in the following
             // two methods leads to C*& instead of C&
 
-            // NTS: problematic: use Catch::ConfigData type explicitly
-            ArgBinder( CommandLine<ConfigT>* cl, void (*_function)( ConfigT& ) )
-            :   m_cl( cl )
-            ,  m_arg( Detail::makeBoundField<Catch::ConfigData,int>( _function ) )
-            {}
-
-            // NTS: problematic: use Catch::ConfigData type explicitly
-            template<typename T>
-            ArgBinder( CommandLine<ConfigT>* cl, void (*_function)( ConfigT&, T ) )
-            :   m_cl( cl )
-            ,  m_arg( Detail::makeBoundField<Catch::ConfigData,T>( _function ) )
-            {}
+            // Bind a free function taking a single argument - the object to operate on (no placeholder string required)
+            template<typename C>
+#ifdef INTERNAL_CATCH_COMPILER_IS_MSVC6
+            // VC6: problematic: use Catch::ConfigData type explicitly
+            void bind( void (* unaryFunction)( C ) ) {
+                m_arg->boundField = new Detail::BoundUnaryFunction<Catch::ConfigData>( unaryFunction );
+#else
+            void bind( void (* unaryFunction)( C& ) ) {
+                m_arg->boundField = new Detail::BoundUnaryFunction<C>( unaryFunction );
 #endif
-            ArgBinder( ArgBinder& other )
-            :   m_cl( other.m_cl ),
-                m_arg( other.m_arg )
-            {
-                other.m_cl = NULL;
             }
-            ~ArgBinder() {
-                if( m_cl ) {
-                    m_arg.validate();
-                    if( m_arg.isFixedPositional() ) {
-                        m_cl->m_positionalArgs.insert( std::make_pair( m_arg.position, m_arg ) );
-                        if( m_arg.position > m_cl->m_highestSpecifiedArgPosition )
-                            m_cl->m_highestSpecifiedArgPosition = m_arg.position;
-                    }
-                    else if( m_arg.isAnyPositional() ) {
-                        if( m_cl->m_arg.get() )
-                            throw std::logic_error( "Only one unpositional argument can be added" );
-                        m_cl->m_arg = ArgAutoPtr( new Arg( m_arg ) );
-                    }
-                    else
-                        m_cl->m_options.push_back( m_arg );
-                }
+
+            // Bind a free function taking a single argument - the object to operate on (requires a placeholder string)
+            template<typename C, typename T>
+#ifdef INTERNAL_CATCH_COMPILER_IS_MSVC6
+            // VC6: problematic: use Catch::ConfigData type explicitly
+            void bind( void (* binaryFunction)( C, T ), std::string const& placeholder ) {
+                m_arg->boundField = new Detail::BoundBinaryFunction<Catch::ConfigData, T>( binaryFunction );
+#else
+            void bind( void (* binaryFunction)( C&, T ), std::string const& placeholder ) {
+                m_arg->boundField = new Detail::BoundBinaryFunction<C, T>( binaryFunction );
+#endif
+                m_arg->placeholder = placeholder;
             }
-            ArgBinder& shortOpt( std::string const& name ) {
-                m_arg.shortNames.push_back( name );
+
+            ArgBuilder& describe( std::string const& description ) {
+                m_arg->description = description;
                 return *this;
             }
-            ArgBinder& longOpt( std::string const& name ) {
-                m_arg.longName = name;
+            ArgBuilder& detail( std::string const& detail ) {
+                m_arg->detail = detail;
                 return *this;
             }
-            ArgBinder& describe( std::string const& description ) {
-                m_arg.description = description;
+
+        protected:
+            Arg* m_arg;
+        };
+
+        class OptBuilder : public ArgBuilder {
+        public:
+            OptBuilder( Arg* arg ) : ArgBuilder( arg ) {}
+            OptBuilder( OptBuilder& other ) : ArgBuilder( other ) {}
+
+            OptBuilder& operator[]( std::string const& optName ) {
+                addOptName( *ArgBuilder::m_arg, optName );
                 return *this;
             }
-            ArgBinder& hint( std::string const& hint ) {
-                m_arg.hint = hint;
-                return *this;
-            }
-            ArgBinder& position( int position ) {
-                m_arg.position = position;
-                return *this;
-            }
-        private:
-            CommandLine<ConfigT>* m_cl;
-            Arg m_arg;
         };
 
     public:
@@ -489,8 +658,8 @@ namespace Clara {
             m_highestSpecifiedArgPosition( other.m_highestSpecifiedArgPosition ),
             m_throwOnUnrecognisedTokens( other.m_throwOnUnrecognisedTokens )
         {
-            if( other.m_arg.get() )
-                m_arg = ArgAutoPtr( new Arg( *other.m_arg ) );
+            if( other.m_floatingArg.get() )
+                m_floatingArg = ArgAutoPtr( new Arg( *other.m_floatingArg ) );
         }
 
         CommandLine& setThrowOnUnrecognisedTokens( bool shouldThrow = true ) {
@@ -498,14 +667,39 @@ namespace Clara {
             return *this;
         }
 
-        template<typename F>
-        ArgBinder bind( F f ) {
-            ArgBinder binder( this, f );
-            return binder;
+
+        OptBuilder operator[]( std::string const& optName ) {
+            m_options.push_back( Arg() );
+            addOptName( m_options.back(), optName );
+            OptBuilder builder( &m_options.back() );
+            return builder;
         }
-        template<typename F>
-        void bindProcessName( F f ) {
-            m_boundProcessName = Detail::makeBoundField( f );
+
+        ArgBuilder operator[]( int position ) {
+            m_positionalArgs.insert( std::make_pair( position, Arg() ) );
+            if( position > m_highestSpecifiedArgPosition )
+                m_highestSpecifiedArgPosition = position;
+            setPositionalArg( m_positionalArgs[position], position );
+            ArgBuilder builder( &m_positionalArgs[position] );
+            return builder;
+        }
+
+        // Invoke this with the _ instance
+        ArgBuilder operator[]( UnpositionalTag ) {
+            if( m_floatingArg.get() )
+                throw std::logic_error( "Only one unpositional argument can be added" );
+            m_floatingArg = ArgAutoPtr( new Arg() );
+            ArgBuilder builder( m_floatingArg.get() );
+            return builder;
+        }
+
+        template<typename C, typename M>
+        void bindProcessName( M C::* field ) {
+            m_boundProcessName = new Detail::BoundDataMember<C,M>( field );
+        }
+        template<typename C, typename M>
+        void bindProcessName( void (C::*_unaryMethod)( M ) ) {
+            m_boundProcessName = new Detail::BoundUnaryMethod<C,M>( _unaryMethod );
         }
 
         void optUsage( std::ostream& os, std::size_t indent = 0, std::size_t width = Detail::consoleWidth ) const {
@@ -518,9 +712,8 @@ namespace Clara {
                 Detail::Text usage( it->commands(), Detail::TextAttributes()
                                                         .setWidth( maxWidth+indent )
                                                         .setIndent( indent ) );
-                // !TBD handle longer usage strings
                 Detail::Text desc( it->description, Detail::TextAttributes()
-                                                        .setWidth( width - maxWidth -3 ) );
+                                                        .setWidth( width - maxWidth - 3 ) );
 
                 for( std::size_t i = 0; i < (std::max)( usage.size(), desc.size() ); ++i ) {
                     std::string usageCol = i < usage.size() ? usage[i] : "";
@@ -545,17 +738,17 @@ namespace Clara {
                     os << " ";
                 typename std::map<int, Arg>::const_iterator it = m_positionalArgs.find( i );
                 if( it != m_positionalArgs.end() )
-                    os << "<" << it->second.hint << ">";
-                else if( m_arg.get() )
-                    os << "<" << m_arg->hint << ">";
+                    os << "<" << it->second.placeholder << ">";
+                else if( m_floatingArg.get() )
+                    os << "<" << m_floatingArg->placeholder << ">";
                 else
                     throw std::logic_error( "non consecutive positional arguments with no floating args" );
             }
             // !TBD No indication of mandatory args
-            if( m_arg.get() ) {
+            if( m_floatingArg.get() ) {
                 if( m_highestSpecifiedArgPosition > 1 )
                     os << " ";
-                os << "[<" << m_arg->hint << "> ...]";
+                os << "[<" << m_floatingArg->placeholder << "> ...]";
             }
         }
         std::string argSynopsis() const {
@@ -565,6 +758,7 @@ namespace Clara {
         }
 
         void usage( std::ostream& os, std::string const& procName ) const {
+            validate();
             os << "usage:\n  " << procName << " ";
             argSynopsis( os );
             if( !m_options.empty() ) {
@@ -577,6 +771,12 @@ namespace Clara {
             std::ostringstream oss;
             usage( oss, procName );
             return oss.str();
+        }
+
+        ConfigT parse( int argc, char const * const * argv ) const {
+            ConfigT config;
+            parseInto( argc, argv, config );
+            return config;
         }
 
         std::vector<Parser::Token> parseInto( int argc, char const * const * argv, ConfigT& config ) const {
@@ -592,9 +792,7 @@ namespace Clara {
         }
 
         std::vector<Parser::Token> populate( std::vector<Parser::Token> const& tokens, ConfigT& config ) const {
-            if( m_options.empty() && m_positionalArgs.empty() )
-                throw std::logic_error( "No options or arguments specified" );
-
+            validate();
             std::vector<Parser::Token> unusedTokens = populateOptions( tokens, config );
             unusedTokens = populateFixedArgs( unusedTokens, config );
             unusedTokens = populateFloatingArgs( unusedTokens, config );
@@ -665,33 +863,45 @@ namespace Clara {
             return unusedTokens;
         }
         std::vector<Parser::Token> populateFloatingArgs( std::vector<Parser::Token> const& tokens, ConfigT& config ) const {
-            if( !m_arg.get() )
+            if( !m_floatingArg.get() )
                 return tokens;
             std::vector<Parser::Token> unusedTokens;
             for( std::size_t i = 0; i < tokens.size(); ++i ) {
                 Parser::Token const& token = tokens[i];
                 if( token.type == Parser::Token::Positional )
-                    m_arg->boundField.set( config, token.data );
+                    m_floatingArg->boundField.set( config, token.data );
                 else
                     unusedTokens.push_back( token );
             }
             return unusedTokens;
         }
 
-//    private:
+        void validate() const
+        {
+            if( m_options.empty() && m_positionalArgs.empty() && !m_floatingArg.get() )
+                throw std::logic_error( "No options or arguments specified" );
+
+            for( typename std::vector<Arg>::const_iterator  it = m_options.begin(),
+                                                            itEnd = m_options.end();
+                    it != itEnd; ++it )
+                it->validate();
+        }
+
+    private:
         Detail::BoundArgFunction<ConfigT> m_boundProcessName;
         std::vector<Arg> m_options;
         std::map<int, Arg> m_positionalArgs;
-        ArgAutoPtr m_arg;
+        ArgAutoPtr m_floatingArg;
         int m_highestSpecifiedArgPosition;
         bool m_throwOnUnrecognisedTokens;
     };
 
 } // end namespace Clara
 
-#ifdef CLICHE_CLARA_OUTER_NAMESPACE
-} // end outer namespace
-#endif
 
-#endif // TWOBLUECUBES_CLARA_H_ALREADY_INCLUDED
+STITCH_CLARA_CLOSE_NAMESPACE
+#undef STITCH_CLARA_OPEN_NAMESPACE
+#undef STITCH_CLARA_CLOSE_NAMESPACE
 
+
+#endif // TWOBLUECUBES_CLARA_H_INCLUDED

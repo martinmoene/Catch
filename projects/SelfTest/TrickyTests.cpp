@@ -12,6 +12,11 @@
 
 #include "catch.hpp"
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wc++98-compat"
+#pragma clang diagnostic ignored "-Wc++98-compat-pedantic"
+#endif
+
 #if defined( INTERNAL_CATCH_COMPILER_IS_MSVC6 )
 
 #define VC6_SUCCEED_TEST( tag, N ) \

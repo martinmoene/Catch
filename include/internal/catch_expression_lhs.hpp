@@ -10,7 +10,7 @@
 
 #include "catch_expressionresult_builder.h"
 #include "catch_evaluate.hpp"
-#include "catch_tostring.hpp"
+#include "catch_tostring.h"
 
 #ifdef INTERNAL_CATCH_COMPILER_IS_MSVC6
 #pragma warning( push )
@@ -19,14 +19,21 @@
 
 namespace Catch {
 
-// Wraps the LHS of an expression and captures the operator and RHS (if any) - wrapping them all
-// in an ExpressionResultBuilder object
+// Wraps the LHS of an expression and captures the operator and RHS (if any) -
+// wrapping them all in an ExpressionResultBuilder object
 template<typename T>
 class ExpressionLhs {
-    void operator = ( ExpressionLhs const& );
+    ExpressionLhs& operator = ( ExpressionLhs const& );
+#  ifdef CATCH_CPP11_OR_GREATER
+    ExpressionLhs& operator = ( ExpressionLhs && ) = delete;
+#  endif
 
 public:
     ExpressionLhs( T lhs ) : m_lhs( lhs ) {}
+#  ifdef CATCH_CPP11_OR_GREATER
+    ExpressionLhs( ExpressionLhs const& ) = default;
+    ExpressionLhs( ExpressionLhs && )     = default;
+#  endif
 
     template<typename RhsT>
     ExpressionResultBuilder& operator == ( RhsT const& rhs ) {

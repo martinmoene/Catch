@@ -1,187 +1,261 @@
 /*
- *  Created by Phil on 22/10/2010.
- *  Copyright 2010 Two Blue Cubes Ltd
+ *  Created by Phil on 13/5/2013.
+ *  Copyright 2014 Two Blue Cubes Ltd. All rights reserved.
  *
  *  Distributed under the Boost Software License, Version 1.0. (See accompanying
  *  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
-#ifdef __clang__
-#pragma clang diagnostic ignored "-Wpadded"
-#endif
-
-#include "internal/clara.h" // This will does not declare Clara within the Catch namespace
 
 #include "catch.hpp"
+#include "catch_test_spec_parser.hpp"
 
 
-// Helper to deduce size from array literals and pass on to parser
-template<typename ArgvT, typename ConfigT>
-std::vector<Clara::Parser::Token> parseInto( Clara::CommandLine<ConfigT>& cli, ArgvT& argv, ConfigT& config ) {
-    return cli.parseInto( CATCH_DIMENSION_OF(argv), argv, config );
-}
+inline Catch::TestCase fakeTestCase( const char* name, const char* desc = "" ){ return Catch::makeTestCase( NULL, "", name, desc, CATCH_INTERNAL_LINEINFO ); }
 
+TEST_CASE( "Parse test names and tags", "" ) {
 
-struct TestOpt {
-    TestOpt() : number( 0 ), index( 0 ), flag( false ) {}
+    using Catch::parseTestSpec;
+    using Catch::TestSpec;
 
-    std::string processName;
-    std::string fileName;
-    int number;
-    int index;
-    bool flag;
-    std::string firstPos;
-    std::string secondPos;
-    std::string unpositional;
+    Catch::TestCase tcA = fakeTestCase( "a", "" );
+    Catch::TestCase tcB = fakeTestCase( "b", "[one][x]" );
+    Catch::TestCase tcC = fakeTestCase( "longer name with spaces", "[two][three][.][x]" );
+    Catch::TestCase tcD = fakeTestCase( "zlonger name with spacesz", "" );
 
-    void setValidIndex( int i ) {
-        if( i < 0 || i > 10 )
-            throw std::domain_error( "index must be between 0 and 10" );
-        index = i;
-    }
-};
-
-struct TestOpt2 {
-    std::string description;
-};
-
-TEST_CASE( "cmdline", "" ) {
-
-    TestOpt config;
-    Clara::CommandLine<TestOpt> cli;
-    cli.bindProcessName( &TestOpt::processName );
-    cli.bind( &TestOpt::fileName )
-        .describe( "specifies output file" )
-        .shortOpt( "o" )
-        .longOpt( "output" )
-        .hint( "filename" );
-
-    SECTION( "process name", "" ) {
-        char const * argv[] = { "test", "-o filename.ext" };
-        parseInto( cli, argv, config );
-
-        CHECK( config.processName == "test" );
-    }
-    SECTION( "arg separated by spaces", "" ) {
-        char const * argv[] = { "test", "-o filename.ext" };
-        parseInto( cli, argv, config );
-
-        CHECK( config.fileName == "filename.ext" );
-    }
-    SECTION( "arg separated by colon", "" ) {
-        const char* argv[] = { "test", "-o:filename.ext" };
-        parseInto( cli, argv, config );
-
-        CHECK( config.fileName == "filename.ext" );
-    }
-    SECTION( "arg separated by =", "" ) {
-        const char* argv[] = { "test", "-o=filename.ext" };
-        parseInto( cli, argv, config );
-
-        CHECK( config.fileName == "filename.ext" );
-    }
-    SECTION( "long opt", "" ) {
-        const char* argv[] = { "test", "--output %stdout" };
-        parseInto( cli, argv, config );
-
-        CHECK( config.fileName == "%stdout" );
+    SECTION( "Empty test spec should have no filters" ) {
+        TestSpec spec;
+        CHECK( spec.hasFilters() == false );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
     }
 
-    cli.bind( &TestOpt::number )
-            .shortOpt( "n" )
-            .hint( "an integral value" );
-
-    SECTION( "a number", "" ) {
-        const char* argv[] = { "test", "-n 42" };
-        parseInto( cli, argv, config );
-
-        CHECK( config.number == 42 );
-    }
-    SECTION( "not a number", "" ) {
-        const char* argv[] = { "test", "-n forty-two" };
-        CHECK_THROWS( parseInto( cli, argv, config ) );
-
-        CHECK( config.number == 0 );
+    SECTION( "Test spec from empty string should have no filters" ) {
+        TestSpec spec = parseTestSpec( "" );
+        CHECK( spec.hasFilters() == false );
+        CHECK( spec.matches(tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
     }
 
-    SECTION( "two parsers", "" ) {
-
-        TestOpt config1;
-        TestOpt2 config2;
-        Clara::CommandLine<TestOpt2> cli2;
-
-        cli2.bind( &TestOpt2::description )
-            .describe( "description" )
-            .shortOpt( "d" )
-            .longOpt( "description" )
-            .hint( "some text" );
-
-        const char* argv[] = { "test", "-n 42", "-d some text" };
-        std::vector<Clara::Parser::Token> unusedTokens = parseInto( cli, argv, config1 );
-
-        CHECK( config1.number == 42 );
-
-        REQUIRE_FALSE( unusedTokens.empty() );
-        cli2.populate( unusedTokens, config2 );
-        CHECK( config2.description == "some text" );
+    SECTION( "Test spec from just a comma should have no filters" ) {
+        TestSpec spec = parseTestSpec( "," );
+        CHECK( spec.hasFilters() == false );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
     }
 
-    SECTION( "methods", "" ) {
-        cli.bind( &TestOpt::setValidIndex )
-            .describe( "An index, which is an integer between 0 and 10, inclusive" )
-            .shortOpt( "i" )
-            .hint( "index" );
-
-        SECTION( "in range", "" ) {
-            const char* argv[] = { "test", "-i 3" };
-            parseInto( cli, argv, config );
-
-            REQUIRE( config.index == 3 );
-        }
-        SECTION( "out of range", "" ) {
-            const char* argv[] = { "test", "-i 42" };
-
-            REQUIRE_THROWS( parseInto( cli, argv, config ) );
-        }
+    SECTION( "Test spec from name should have one filter" ) {
+        TestSpec spec = parseTestSpec( "b" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == true );
     }
 
-    SECTION( "flags", "" ) {
-        cli.bind( &TestOpt::flag )
-            .describe( "A flag" )
-            .shortOpt( "f" );
-
-        SECTION( "set", "" ) {
-            const char* argv[] = { "test", "-f" };
-            parseInto( cli, argv, config );
-
-            REQUIRE( config.flag );
-        }
-        SECTION( "not set", "" ) {
-            const char* argv[] = { "test" };
-            parseInto( cli, argv, config );
-
-            REQUIRE( config.flag == false );
-        }
+    SECTION( "Test spec from quoted name should have one filter" ) {
+        TestSpec spec = parseTestSpec( "\"b\"" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == true );
     }
-    SECTION( "positional", "" ) {
-        cli.bind( &TestOpt::secondPos )
-            .describe( "Second position" )
-            .hint( "second arg" )
-            .position( 2 );
-        cli.bind( &TestOpt::unpositional )
-            .hint( "any arg" )
-            .describe( "Unpositional" );
-        cli.bind( &TestOpt::firstPos )
-            .describe( "First position" )
-            .hint( "first arg" )
-            .position( 1 );
 
-//        std::cout << cli.usage( "testApp" ) << std::endl;
-
-        const char* argv[] = { "test", "-f", "1st", "-o", "filename", "2nd", "3rd" };
-        parseInto( cli, argv, config );
-
-        REQUIRE( config.firstPos == "1st" );
-        REQUIRE( config.secondPos == "2nd" );
-        REQUIRE( config.unpositional == "3rd" );
+    SECTION( "Test spec from name should have one filter" ) {
+        TestSpec spec = parseTestSpec( "b" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == true );
+        CHECK( spec.matches( tcC ) == false );
     }
+
+    SECTION( "Wildcard at the start" ) {
+        TestSpec spec = parseTestSpec( "*spaces" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == true );
+        CHECK( spec.matches( tcD ) == false );
+        CHECK( parseTestSpec( "*a" ).matches( tcA ) == true );
+    }
+    SECTION( "Wildcard at the end" ) {
+        TestSpec spec = parseTestSpec( "long*" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == true );
+        CHECK( spec.matches( tcD ) == false );
+        CHECK( parseTestSpec( "a*" ).matches( tcA ) == true );
+    }
+    SECTION( "Wildcard at both ends" ) {
+        TestSpec spec = parseTestSpec( "*name*" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == true );
+        CHECK( spec.matches( tcD ) == true );
+        CHECK( parseTestSpec( "*a*" ).matches( tcA ) == true );
+    }
+    SECTION( "Redundant wildcard at the start" ) {
+        TestSpec spec = parseTestSpec( "*a" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == true );
+        CHECK( spec.matches( tcB ) == false );
+    }
+    SECTION( "Redundant wildcard at the end" ) {
+        TestSpec spec = parseTestSpec( "a*" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == true );
+        CHECK( spec.matches( tcB ) == false );
+    }
+    SECTION( "Redundant wildcard at both ends" ) {
+        TestSpec spec = parseTestSpec( "*a*" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == true );
+        CHECK( spec.matches( tcB ) == false );
+    }
+    SECTION( "Wildcard at both ends, redundant at start" ) {
+        TestSpec spec = parseTestSpec( "*longer*" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == true );
+        CHECK( spec.matches( tcD ) == true );
+    }
+    SECTION( "Just wildcard" ) {
+        TestSpec spec = parseTestSpec( "*" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == true );
+        CHECK( spec.matches( tcB ) == true );
+        CHECK( spec.matches( tcC ) == true );
+        CHECK( spec.matches( tcD ) == true );
+    }
+
+    SECTION( "Single tag" ) {
+        TestSpec spec = parseTestSpec( "[one]" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == true );
+        CHECK( spec.matches( tcC ) == false );
+    }
+    SECTION( "Single tag, two matches" ) {
+        TestSpec spec = parseTestSpec( "[x]" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == true );
+        CHECK( spec.matches( tcC ) == true );
+    }
+    SECTION( "Two tags" ) {
+        TestSpec spec = parseTestSpec( "[two][x]" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == true );
+    }
+    SECTION( "Two tags, spare separated" ) {
+        TestSpec spec = parseTestSpec( "[two] [x]" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == true );
+    }
+    SECTION( "Wildcarded name and tag" ) {
+        TestSpec spec = parseTestSpec( "*name*[x]" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == true );
+        CHECK( spec.matches( tcD ) == false );
+    }
+    SECTION( "Single tag exclusion" ) {
+        TestSpec spec = parseTestSpec( "~[one]" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == true );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == true );
+    }
+    SECTION( "One tag exclusion and one tag inclusion" ) {
+        TestSpec spec = parseTestSpec( "~[two][x]" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == true );
+        CHECK( spec.matches( tcC ) == false );
+    }
+    SECTION( "One tag exclusion and one wldcarded name inclusion" ) {
+        TestSpec spec = parseTestSpec( "~[two]*name*" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == false );
+        CHECK( spec.matches( tcD ) == true );
+    }
+    SECTION( "One tag exclusion, using exclude:, and one wldcarded name inclusion" ) {
+        TestSpec spec = parseTestSpec( "exclude:[two]*name*" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == false );
+        CHECK( spec.matches( tcD ) == true );
+    }
+    SECTION( "name exclusion" ) {
+        TestSpec spec = parseTestSpec( "~b" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == true );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == true );
+        CHECK( spec.matches( tcD ) == true );
+    }
+    SECTION( "wildcarded name exclusion" ) {
+        TestSpec spec = parseTestSpec( "~*name*" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == true );
+        CHECK( spec.matches( tcB ) == true );
+        CHECK( spec.matches( tcC ) == false );
+        CHECK( spec.matches( tcD ) == false );
+    }
+    SECTION( "wildcarded name exclusion with tag inclusion" ) {
+        TestSpec spec = parseTestSpec( "~*name*,[three]" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == true );
+        CHECK( spec.matches( tcB ) == true );
+        CHECK( spec.matches( tcC ) == true );
+        CHECK( spec.matches( tcD ) == false );
+    }
+    SECTION( "wildcarded name exclusion, using exclude:, with tag inclusion" ) {
+        TestSpec spec = parseTestSpec( "exclude:*name*,[three]" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == true );
+        CHECK( spec.matches( tcB ) == true );
+        CHECK( spec.matches( tcC ) == true );
+        CHECK( spec.matches( tcD ) == false );
+    }
+    SECTION( "two wildcarded names" ) {
+        TestSpec spec = parseTestSpec( "\"longer*\"\"*spaces\"" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == true );
+        CHECK( spec.matches( tcD ) == false );
+    }
+    SECTION( "empty tag" ) {
+        TestSpec spec = parseTestSpec( "[]" );
+        CHECK( spec.hasFilters() == false );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == false );
+        CHECK( spec.matches( tcD ) == false );
+    }
+    SECTION( "empty quoted name" ) {
+        TestSpec spec = parseTestSpec( "\"\"" );
+        CHECK( spec.hasFilters() == false );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == false );
+        CHECK( spec.matches( tcD ) == false );
+    }
+    SECTION( "quoted string followed by tag exclusion" ) {
+        TestSpec spec = parseTestSpec( "\"*name*\"~[.]" );
+        CHECK( spec.hasFilters() == true );
+        CHECK( spec.matches( tcA ) == false );
+        CHECK( spec.matches( tcB ) == false );
+        CHECK( spec.matches( tcC ) == false );
+        CHECK( spec.matches( tcD ) == true );
+    }
+
 }

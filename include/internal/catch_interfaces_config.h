@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "catch_ptr.hpp"
 
@@ -32,6 +33,8 @@ namespace Catch {
         Never
     }; };
 
+    class TestSpec;
+
     struct IConfig : IShared {
 
         virtual ~IConfig();
@@ -43,7 +46,9 @@ namespace Catch {
         virtual bool shouldDebugBreak() const = 0;
         virtual bool warnAboutMissingAssertions() const = 0;
         virtual int abortAfter() const = 0;
+        virtual bool showInvisibles() const = 0;
         virtual ShowDurations::OrNot showDurations() const = 0;
+        virtual TestSpec const& testSpec() const = 0;
     };
 }
 
